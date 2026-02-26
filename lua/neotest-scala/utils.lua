@@ -14,15 +14,24 @@ function M.get_position_name(position)
 end
 
 ---Get a package name from the top of the file.
+---Supports chained package declarations spanning multiple lines (e.g. `package foo` then `package bar`).
 ---@return string|nil
 function M.get_package_name(file)
     local success, lines = pcall(lib.files.read_lines, file)
     if not success then
         return nil
     end
-    local line = lines[1]
-    if vim.startswith(line, "package") then
-        return vim.split(line, " ")[2] .. "."
+    local parts = {}
+    for _, line in ipairs(lines) do
+        local pkg = line:match("^package%s+([%w%.]+)")
+        if pkg then
+            table.insert(parts, pkg)
+        elseif #parts > 0 then
+            break
+        end
+    end
+    if #parts > 0 then
+        return table.concat(parts, ".") .. "."
     end
     return ""
 end
