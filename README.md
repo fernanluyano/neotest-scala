@@ -57,6 +57,14 @@ require("neotest").setup({
 })
 ```
 
+## Development
+
+Run the test suite locally with:
+
+```sh
+make test
+```
+
 ## Roadmap
 
 To be implemented:
