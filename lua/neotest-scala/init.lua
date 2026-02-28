@@ -240,6 +240,68 @@ local function get_results(tree, test_results, match_func)
     return results
 end
 
+---Create or open the test file for the given source file.
+---Derives the test path from src/main/scala/ -> src/test/scala/, appending Test to the class name.
+---Scaffolds a new test file if it does not exist, using the configured framework.
+---@param file_path string|nil Path to the source file (defaults to current buffer)
+function ScalaNeotestAdapter.create(file_path)
+    file_path = file_path or vim.fn.expand("%:p")
+
+    local main_marker = "/src/main/scala/"
+    local i = file_path:find(main_marker, 1, true)
+    if not i then
+        vim.notify("Not in src/main/scala/", vim.log.levels.WARN)
+        return
+    end
+
+    local rel = file_path:sub(i + #main_marker)
+    local test_path = file_path:sub(1, i) .. "src/test/scala/" .. rel:gsub("%.scala$", "Test.scala")
+
+    if vim.fn.filereadable(test_path) == 1 then
+        vim.cmd("edit " .. test_path)
+        return
+    end
+
+    local pkg = utils.get_package_name(file_path)
+    if pkg and pkg ~= "" then
+        pkg = pkg:sub(1, -2) -- strip trailing dot added by get_package_name
+    end
+
+    local class_name = vim.fn.fnamemodify(file_path, ":t:r")
+    local test_class = class_name .. "Test"
+    local framework = get_framework()
+    local content = {}
+
+    if pkg and pkg ~= "" then
+        table.insert(content, "package " .. pkg)
+        table.insert(content, "")
+    end
+
+    if framework == "scalatest" then
+        table.insert(content, "import org.scalatest.funsuite.AnyFunSuite")
+        table.insert(content, "")
+        table.insert(content, "class " .. test_class .. " extends AnyFunSuite {")
+        table.insert(content, "")
+        table.insert(content, "}")
+    elseif framework == "munit" then
+        table.insert(content, "class " .. test_class .. " extends munit.FunSuite {")
+        table.insert(content, "}")
+    elseif framework == "utest" then
+        table.insert(content, "import utest._")
+        table.insert(content, "")
+        table.insert(content, "object " .. test_class .. " extends TestSuite {")
+        table.insert(content, "  val tests = Tests {}")
+        table.insert(content, "}")
+    else
+        table.insert(content, "class " .. test_class .. " {}")
+    end
+
+    vim.fn.mkdir(vim.fn.fnamemodify(test_path, ":h"), "p")
+    vim.fn.writefile(content, test_path)
+    vim.cmd("edit " .. test_path)
+    vim.notify("Created " .. test_path, vim.log.levels.INFO)
+end
+
 ---@async
 ---@param result neotest.StrategyResult
 ---@param tree neotest.Tree
