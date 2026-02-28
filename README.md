@@ -52,6 +52,11 @@ require("neotest").setup({
         -- Can be a function to return dynamic value.
         -- Possibly values utest|munit|scalatest.
         framework = "utest",
+        -- Optional keymap to create or open the test file for the current source file.
+        -- Derives the test path from src/main/scala/ -> src/test/scala/, appending Test to
+        -- the class name, and scaffolds a new file using the configured framework if it does
+        -- not exist. No keymap is registered if this option is omitted.
+        create_keymap = "<leader>tc",
     })
   }
 })

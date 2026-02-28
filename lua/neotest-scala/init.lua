@@ -343,6 +343,9 @@ setmetatable(ScalaNeotestAdapter, {
                 return opts.framework
             end
         end
+        if opts.create_keymap then
+            vim.keymap.set("n", opts.create_keymap, ScalaNeotestAdapter.create, { desc = "Create/Go to test class" })
+        end
         return ScalaNeotestAdapter
     end,
 })
