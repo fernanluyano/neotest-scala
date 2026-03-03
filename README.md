@@ -19,7 +19,7 @@ use({
   "nvim-neotest/neotest",
   requires = {
     ...,
-    "stevanmilic/neotest-scala",
+    "fernanluyano/neotest-scala",
   }
   config = function()
     require("neotest").setup({
