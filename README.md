@@ -4,6 +4,18 @@
 
 The runner is auto-detected from the project structure: projects with a `project.scala` file use Scala CLI, all others default to bloop.
 
+## Support Matrix
+
+| Framework | bloop | sbt | scala-cli |
+|-----------|:-----:|:---:|:---------:|
+| scalatest | ✓ | ✓ | ✓ |
+| munit | ✓ | ✓ | ✓ |
+| utest | ✓ | ✓ | ✓ |
+
+> **ScalaTest**: only `FunSuite` style is supported.
+> **utest**: individual test debugging is not supported (does not implement `sbt.testing.TestSelector`).
+> **DAP**: debugging requires bloop or sbt via [nvim-metals](https://github.com/scalameta/nvim-metals).
+
 It also supports debugging tests with [nvim-dap](https://github.com/rcarriga/nvim-dap) (requires [nvim-metals](https://github.com/scalameta/nvim-metals)). You can debug individual test cases as well, but note that utest framework doesn't support this because it doesn't implement `sbt.testing.TestSelector`. To run tests with debugger pass `strategy = "dap"` when running neotest:
 
 ```lua
