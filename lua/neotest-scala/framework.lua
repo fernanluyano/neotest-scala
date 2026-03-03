@@ -45,6 +45,12 @@ local function build_command_with_test_path(project, runner, test_path, extra_ar
         end
         return vim.tbl_flatten({ "bloop", "test", extra_args, project, full_test_path })
     end
+    if runner == "scala-cli" then
+        if not test_path then
+            return vim.tbl_flatten({ "scala-cli", "test", extra_args, project })
+        end
+        return vim.tbl_flatten({ "scala-cli", "test", extra_args, project, "--", test_path })
+    end
     if not test_path then
         return vim.tbl_flatten({ "sbt", extra_args, project .. "/test" })
     end
@@ -323,6 +329,15 @@ local function scalatest_framework()
                 full_test_path = { "-o", test_namespace, "--", "-z", name }
             end
             return vim.tbl_flatten({ "bloop", "test", extra_args, project, full_test_path })
+        end
+        if runner == "scala-cli" then
+            if not test_namespace then
+                return vim.tbl_flatten({ "scala-cli", "test", extra_args, project })
+            elseif tree:data().type ~= "test" then
+                return vim.tbl_flatten({ "scala-cli", "test", extra_args, project, "--test-only", test_namespace })
+            else
+                return vim.tbl_flatten({ "scala-cli", "test", extra_args, project, "--test-only", test_namespace, "--", "-z", name })
+            end
         end
         if not test_namespace then
             return vim.tbl_flatten({ "sbt", extra_args, project .. "/test" })

@@ -6,7 +6,7 @@ local utils = require("neotest-scala.utils")
 ---@type neotest.Adapter
 local ScalaNeotestAdapter = { name = "neotest-scala" }
 
-ScalaNeotestAdapter.root = lib.files.match_root_pattern("build.sbt")
+ScalaNeotestAdapter.root = lib.files.match_root_pattern("build.sbt", "project.scala")
 
 ---@async
 ---@param file_path string
@@ -85,7 +85,7 @@ local function get_runner()
     if vim_test_runner == "blooptest" then
         return "bloop"
     end
-    if vim_test_runner and lib.func_util.index({ "bloop", "sbt" }, vim_test_runner) then
+    if vim_test_runner and lib.func_util.index({ "bloop", "sbt", "scala-cli" }, vim_test_runner) then
         return vim_test_runner
     end
     return "bloop"
@@ -97,7 +97,7 @@ end
 
 local function get_framework()
     -- TODO: Automatically detect framework based on build.sbt
-    return "utest"
+    return "scalatest"
 end
 
 ---Get first project name from bloop projects.
@@ -114,6 +114,12 @@ end
 ---@return string|nil
 local function get_project_name(path, runner)
     local root = ScalaNeotestAdapter.root(path)
+    if runner == "scala-cli" then
+        return root
+    end
+    if not root then
+        return nil
+    end
     local build_file = root .. "/build.sbt"
     local success, lines = pcall(lib.files.read_lines, build_file)
     if not success then
@@ -200,7 +206,7 @@ end
 function ScalaNeotestAdapter.build_spec(args)
     local position = args.tree:data()
     local runner = get_runner()
-    assert(lib.func_util.index({ "bloop", "sbt" }, runner), "set sbt or bloop runner")
+    assert(lib.func_util.index({ "bloop", "sbt", "scala-cli" }, runner), "set sbt, bloop or scala-cli runner")
     local project = get_project_name(position.path, runner)
     assert(project, "scala project not found in the build file")
     local framework = fw.get_framework_class(get_framework())
